@@ -3,7 +3,39 @@
 // ============================================================
 
 // Идентификаторы модулей дашборда
-export type ModuleId = 'memory' | 'control-flow' | 'arrays' | 'async-api' | 'sandbox' | 'sprints' | 'team-integration';
+export type ModuleId =
+  | 'memory'
+  | 'control-flow'
+  | 'arrays'
+  | 'async-api'
+  | 'sandbox'
+  | 'sprints'
+  | 'team-integration'
+  | 'architecture'
+  | 'cyber-battle'
+  | 'achievements'
+  | 'flexbox-ui';
+
+// --- Игровая система (RPG Mechanics) ---
+
+// Уровни и титулы игрока
+export interface LevelInfo {
+  level: number;
+  title: string;
+  minXp: number;
+  maxXp: number;
+}
+
+// Достижение (бейдж)
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  xpReward: number;
+  unlocked: boolean;
+  unlockedAt?: number;
+}
 
 // Метаданные модуля для навигации
 export interface ModuleInfo {

@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { CheckCircle2, XCircle, Play, ClipboardList, Trophy, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, Play, ClipboardList, Trophy, RotateCcw, Zap } from 'lucide-react';
 import { CHALLENGES } from '@/data/challenges';
-import type { Challenge, TestResult } from '@/types';
+import { useGame, XP_REWARDS } from '@/context/GameContext';
+import type { Challenge, TestResult, Difficulty } from '@/types';
 
 // ============================================================
 // Модуль 06: Engineering Sprints — Задания с автопроверкой
@@ -43,7 +44,14 @@ function deepEqual(a: unknown, b: unknown): boolean {
   }
 }
 
+const XP_BY_DIFFICULTY: Record<Difficulty, number> = {
+  Junior: XP_REWARDS.CHALLENGE_SOLVED_JUNIOR,
+  Middle: XP_REWARDS.CHALLENGE_SOLVED_MIDDLE,
+  Senior: XP_REWARDS.CHALLENGE_SOLVED_SENIOR,
+};
+
 export default function SprintsModule() {
+  const { addXp, unlockAchievement, isAchievementUnlocked } = useGame();
   // ID выбранной задачи
   const [activeId, setActiveId] = useState(1);
   // Код в редакторе (привязан к выбранной задаче)
@@ -213,10 +221,26 @@ export default function SprintsModule() {
     setResults(testResults);
     setIsRunning(false);
 
-    // Все тесты пройдены → отмечаем задачу решённой
+    // Все тесты пройдены → отмечаем задачу решённой + начисляем XP
     const allPassed = testResults.length > 0 && testResults.every((r) => r.passed);
     if (allPassed) {
-      setSolved((prev) => new Set(prev).add(activeId));
+      setSolved((prev) => {
+        if (prev.has(activeId)) return prev;
+        const next = new Set(prev);
+        next.add(activeId);
+        // XP за новое решение
+        const xpReward = XP_BY_DIFFICULTY[challenge.difficulty];
+        addXp(xpReward, `Задача #${challenge.id} решена`);
+        // Достижение за первую задачу
+        if (!isAchievementUnlocked('sprint-junior')) {
+          unlockAchievement('sprint-junior');
+        }
+        // Достижение за все 5 задач
+        if (next.size === CHALLENGES.length && !isAchievementUnlocked('sprint-master')) {
+          unlockAchievement('sprint-master');
+        }
+        return next;
+      });
     }
   };
 
